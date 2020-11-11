@@ -1,0 +1,7 @@
+version: "2"
+domain: spring.io
+repo: github.com/dsyer/spring-config-operator
+resources:
+- group: spring.io
+  version: v1
+  kind: ConfigClient

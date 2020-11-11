@@ -1,0 +1,91 @@
+:toc:
+
+A Kubernetes operator for Spring Cloud config clients.
+
+Run the configserver:
+
+```
+$ kubectl apply -f config/samples/configserver.yaml
+```
+
+Add a config client:
+
+```
+$ kubectl apply -f config/samples/demo.yaml
+$ kubectl get configclients
+NAME   URL                                 COMPLETE
+demo   http://configserver/app/default   true
+```
+
+The `COMPLETE` status in the `configclient` CRD means that a config map was created successfully. It has the same name as the `configclient`:
+
+```
+$ kubectl get configmap
+NAME   DATA   AGE
+demo   4      6m10s
+```
+
+== Installation
+
+The controller is in Dockerhub, so you should be able to deploy it from just the YAML:
+
+```
+$ kubectl apply -f <(kustomize build github.com/dsyer/spring-config-operator/config/default)
+```
+
+Clean up:
+
+```
+$ kubectl delete configclient --all
+$ kubectl delete namespace spring-system
+```
+
+=== Building from Source
+
+If you know how to set up a GO lang development environment, and are building from source you can just do this:
+
+```
+$ make install
+$ make run
+```
+
+and then the controller will register with your default cluster.
+
+[TIP]
+====
+You may encounter issues with go modules. If you see this:
+
+```
+# sigs.k8s.io/controller-tools/pkg/webhook
+/go/pkg/mod/sigs.k8s.io/controller-tools@v0.2.1/pkg/webhook/parser.go:98:29: undefined: v1beta1.Webhook
+/go/pkg/mod/sigs.k8s.io/controller-tools@v0.2.1/pkg/webhook/parser.go:129:9: undefined: v1beta1.Webhook
+/go/pkg/mod/sigs.k8s.io/controller-tools@v0.2.1/pkg/webhook/parser.go:161:21: undefined: v1beta1.Webhook
+/go/pkg/mod/sigs.k8s.io/controller-tools@v0.2.1/pkg/webhook/parser.go:162:23: undefined: v1beta1.Webhook
+make: *** [Makefile:69: controller-gen] Error 2
+```
+
+try this:
+
+```
+$ (cd .. && GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.1)
+$ make install run
+```
+
+Grab a port forward for the configserver:
+
+```
+$ kubectl port-forward svc/configserver 8888:80
+```
+
+Add a config client that points to the forwarded server:
+
+```
+$ kubectl apply -f config/samples/debug.yaml
+$ kubectl get configclients
+NAME   URL                                 COMPLETE
+demo   http://localhost:8888/app/default   true
+```
+
+====
+
+The source code has a VSCode `.devcontainer` definition, so if you use the "Remote Container" extension, you should be able to run in a container. The `devcontainer.json` has comments explaining what to set up on the host (you need to have `docker` running and set up your `~/.kube/config` to talk to your cluster).
