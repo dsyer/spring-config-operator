@@ -62,7 +62,7 @@ func ConfigMapReconciler(c reconcilers.Config) reconcilers.SubReconciler {
 		ChildListType: &corev1.ConfigMapList{},
 
 		DesiredChild: func(client *api.ConfigClient) (*corev1.ConfigMap, error) {
-			return extract(client), nil
+			return extract(client, c), nil
 		},
 
 		ReflectChildStatusOnParent: func(client *api.ConfigClient, child *corev1.ConfigMap, err error) {
@@ -107,24 +107,26 @@ func getJSON(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
-func extract(client *api.ConfigClient) *corev1.ConfigMap {
+func extract(client *api.ConfigClient, c reconcilers.Config) *corev1.ConfigMap {
 	config := corev1.ConfigMap{}
 	config.Name = client.Name
 	config.Namespace = client.Namespace
 	config.Labels = client.Labels
 	environment := &Environment{}
 	config.Data = map[string]string{}
-	if err := getJSON(client.Spec.URL, environment); err == nil {
-		for _, properties := range environment.PropertySources {
-			for k, v := range properties.Source {
-				if _, ok := config.Data[k]; !ok {
-					config.Data[k] = v
-				}
+	if err := getJSON(client.Spec.URL, environment); err != nil {
+		c.Log.Error(err, "Failed to download config data", "configclient", client.Name, "url", client.Spec.URL)
+		client.Status.Complete = false
+		return nil
+	}
+	for _, properties := range environment.PropertySources {
+		for k, v := range properties.Source {
+			if _, ok := config.Data[k]; !ok {
+				config.Data[k] = v
 			}
 		}
-		client.Status.Complete = true
-	} else {
-		client.Status.Complete = false
 	}
+	c.Log.Info("Downloaded config data", "configclient", client.Name, "url", client.Spec.URL)
+	client.Status.Complete = true
 	return &config
 }

@@ -3,4 +3,5 @@ kind: ConfigClient
 metadata:
   name: demo
 spec:
+  # The URL has to be resolvable by the controller
   url: http://configserver.default.svc.cluster.local/app/default
