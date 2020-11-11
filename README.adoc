@@ -70,6 +70,7 @@ try this:
 $ (cd .. && GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.1)
 $ make install run
 ```
+====
 
 Grab a port forward for the configserver:
 
@@ -85,7 +86,5 @@ $ kubectl get configclients
 NAME   URL                                 COMPLETE
 demo   http://localhost:8888/app/default   true
 ```
-
-====
 
 The source code has a VSCode `.devcontainer` definition, so if you use the "Remote Container" extension, you should be able to run in a container. The `devcontainer.json` has comments explaining what to set up on the host (you need to have `docker` running and set up your `~/.kube/config` to talk to your cluster).
