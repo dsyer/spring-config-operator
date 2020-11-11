@@ -30,7 +30,7 @@ demo   4      6m10s
 The controller is in Dockerhub, so you should be able to deploy it from just the YAML:
 
 ```
-$ kubectl apply -f <(kustomize build github.com/dsyer/spring-config-operator/config/default)
+$ kubectl apply -f <(kustomize build github.com/dsyer/spring-config-operator/config/default?ref=main)
 ```
 
 Clean up:
