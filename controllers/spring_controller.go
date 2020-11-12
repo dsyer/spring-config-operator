@@ -70,6 +70,7 @@ func ConfigMapReconciler(c reconcilers.Config) reconcilers.SubReconciler {
 
 		MergeBeforeUpdate: func(current, desired *corev1.ConfigMap) {
 			current.Labels = desired.Labels
+			current.Data = desired.Data
 		},
 
 		SemanticEquals: func(a1, a2 *corev1.ConfigMap) bool {
